@@ -26,7 +26,8 @@ namespace FrontEndDisseminacaoRedesSociais
             builder.Services.AddHttpClient<TikTokService>();
             builder.Services.AddHttpClient<InstagramService>();
             builder.Services.AddHttpClient<TwitterService>();
-            builder.Services.AddSingleton<TikTokToken>(); 
+            builder.Services.AddSingleton<TikTokToken>();
+            builder.Services.AddScoped<PostZenService>();
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();

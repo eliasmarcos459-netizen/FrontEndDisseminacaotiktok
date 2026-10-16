@@ -6,6 +6,7 @@
 @inject InstagramService IgService
 @inject TwitterService TwitterService
 @inject TikTokService TikTokService
+@inject PostZenService PostZenService
 
 <MudThemeProvider @bind-IsDarkMode="@SessaoThemeMudBlazor._IsDarkTheme" Theme="SessaoThemeMudBlazor._customTheme" />
 <MudPopoverProvider />
@@ -471,33 +472,33 @@
             }
 
             // PROCESSAR TIKTOK
-            var plataformaTikTok = _platforms.FirstOrDefault(p => p.Nome == "TikTok" && p.EstaSelecionado);
-            if (plataformaTikTok != null)
-            {
-                if (string.IsNullOrWhiteSpace(plataformaTikTok.TextoAtual))
-                {
-                    Snackbar.Add("O texto para o TikTok não pode estar vazio.", Severity.Warning);
-                    return;
-                }
+            // var plataformaTikTok = _platforms.FirstOrDefault(p => p.Nome == "TikTok" && p.EstaSelecionado);
+            // if (plataformaTikTok != null)
+            // {
+            //     if (string.IsNullOrWhiteSpace(plataformaTikTok.TextoAtual))
+            //     {
+            //         Snackbar.Add("O texto para o TikTok não pode estar vazio.", Severity.Warning);
+            //         return;
+            //     }
 
-                var videoFile = _uploadedFiles.FirstOrDefault(f => f.ContentType.Contains("video") || f.Name.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase) || f.Name.EndsWith(".mov", StringComparison.OrdinalIgnoreCase));
-                if (videoFile == null)
-                {
-                    Snackbar.Add("O TikTok exige a seleção de um ficheiro de vídeo (.mp4 ou .mov).", Severity.Warning);
-                }
-                else
-                {
-                    bool sucessoTikTok = await TikTokService.PublicarVideoAsync(plataformaTikTok.TextoAtual, videoFile);
-                    if (sucessoTikTok)
-                    {
-                        Snackbar.Add("Vídeo enviado com sucesso para o TikTok (Inbox/Draft)! 🎵", Severity.Success);
-                    }
-                    else
-                    {
-                        Snackbar.Add("Falha ao publicar no TikTok. Verifique o token de acesso ou os logs.", Severity.Error);
-                    }
-                }
-            }
+            //     var videoFile = _uploadedFiles.FirstOrDefault(f => f.ContentType.Contains("video") || f.Name.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase) || f.Name.EndsWith(".mov", StringComparison.OrdinalIgnoreCase));
+            //     if (videoFile == null)
+            //     {
+            //         Snackbar.Add("O TikTok exige a seleção de um ficheiro de vídeo (.mp4 ou .mov).", Severity.Warning);
+            //     }
+            //     else
+            //     {
+            //         bool sucessoTikTok = await TikTokService.PublicarVideoAsync(plataformaTikTok.TextoAtual, videoFile);
+            //         if (sucessoTikTok)
+            //         {
+            //             Snackbar.Add("Vídeo enviado com sucesso para o TikTok (Inbox/Draft)! 🎵", Severity.Success);
+            //         }
+            //         else
+            //         {
+            //             Snackbar.Add("Falha ao publicar no TikTok. Verifique o token de acesso ou os logs.", Severity.Error);
+            //         }
+            //     }
+            // }
 
             // PROCESSAR INSTAGRAM
             var plataformaInstagram = _platforms.FirstOrDefault(p => p.Nome == "Instagram" && p.EstaSelecionado);
@@ -540,6 +541,30 @@
                 else
                 {
                     Snackbar.Add("Falha ao publicar no X. Verifique as credenciais ou a consola.", Severity.Error);
+                }
+            }
+
+            // PROCESSAR TIKTOK VIA POSTZEN
+            var plataformaTikTok = _platforms.FirstOrDefault(p => p.Nome == "TikTok" && p.EstaSelecionado);
+            if (plataformaTikTok != null)
+            {
+                if (string.IsNullOrWhiteSpace(plataformaTikTok.TextoAtual))
+                {
+                    Snackbar.Add("O texto para o TikTok não pode estar vazio.", Severity.Warning);
+                    return;
+                }
+
+                var videoFile = _uploadedFiles.FirstOrDefault(f => f.ContentType.Contains("video") || f.Name.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase) || f.Name.EndsWith(".mov", StringComparison.OrdinalIgnoreCase));
+
+                // O PostZen gere o rascunho via API
+                bool sucessoPostZen = await PostZenService.PublicarDraftTikTokAsync(plataformaTikTok.TextoAtual, videoFile);
+                if (sucessoPostZen)
+                {
+                    Snackbar.Add("Rascunho de vídeo criado com sucesso no TikTok via PostZen! 🎵", Severity.Success);
+                }
+                else
+                {
+                    Snackbar.Add("Falha ao comunicar com o PostZen. Verifique a API Key ou os logs.", Severity.Error);
                 }
             }
 

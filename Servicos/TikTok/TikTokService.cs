@@ -28,7 +28,7 @@ namespace SMAD
 
             try
             {
-                // PASSO 1: Inicializar a publicação de vídeo (Inbox/Draft para contornar restrições de sandbox)
+                // Inicializar a publicação de vídeo (Inbox/Draft para contornar restrições de sandbox)
                 var initUrl = "https://open.tiktokapis.com/v2/post/publish/inbox/video/init/";
 
                 var payload = new
@@ -74,7 +74,7 @@ namespace SMAD
                     return false;
                 }
 
-                // PASSO 2: Enviar o conteúdo binário via PUT (SEM o Content-Length manual para evitar exceção)
+                // Enviar o conteúdo binário via PUT (SEM o Content-Length manual para evitar exceção)
                 using var stream = ficheiroVideo.OpenReadStream(maxAllowedSize: 104857600); // 100MB
                 using var streamContent = new StreamContent(stream);
                 streamContent.Headers.ContentType = new MediaTypeHeaderValue(ficheiroVideo.ContentType);

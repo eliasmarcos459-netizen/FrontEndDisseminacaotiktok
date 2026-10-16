@@ -120,5 +120,25 @@
       <LastWriteTime>Tue, 13 Oct 2026 09:11:09 GMT</LastWriteTime>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\index.html'))</OriginalItemSpec>
     </StaticWebAsset>
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\tiktokmFvXZJa5qkQW35uoHCAHs2eZwYHFgWgb.txt'))">
+      <SourceType>Package</SourceType>
+      <SourceId>FrontEndDisseminacaoRedesSociais</SourceId>
+      <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
+      <BasePath>/</BasePath>
+      <RelativePath>tiktokmFvXZJa5qkQW35uoHCAHs2eZwYHFgWgb.txt</RelativePath>
+      <AssetKind>All</AssetKind>
+      <AssetMode>All</AssetMode>
+      <AssetRole>Primary</AssetRole>
+      <RelatedAsset></RelatedAsset>
+      <AssetTraitName></AssetTraitName>
+      <AssetTraitValue></AssetTraitValue>
+      <Fingerprint>ojsg3a2akb</Fingerprint>
+      <Integrity>hN9/y8KKk2lR7GrTJAnbk0N1/kUFNWud/glPKC2n3gc=</Integrity>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <FileLength>71</FileLength>
+      <LastWriteTime>Fri, 16 Oct 2026 10:47:44 GMT</LastWriteTime>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\tiktokmFvXZJa5qkQW35uoHCAHs2eZwYHFgWgb.txt'))</OriginalItemSpec>
+    </StaticWebAsset>
   </ItemGroup>
 </Project>

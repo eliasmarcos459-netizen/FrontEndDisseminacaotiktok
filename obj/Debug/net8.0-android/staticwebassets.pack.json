@@ -25,6 +25,10 @@
       "PackagePath": "staticwebassets\\index.html"
     },
     {
+      "Id": "C:\\Users\\User\\Desktop\\FrontEndDisseminacaoRedesSociais\\FrontEndDisseminacaoRedesSociais\\wwwroot\\tiktokmFvXZJa5qkQW35uoHCAHs2eZwYHFgWgb.txt",
+      "PackagePath": "staticwebassets\\tiktokmFvXZJa5qkQW35uoHCAHs2eZwYHFgWgb.txt"
+    },
+    {
       "Id": "obj\\Debug\\net8.0-android\\staticwebassets\\msbuild.FrontEndDisseminacaoRedesSociais.Microsoft.AspNetCore.StaticWebAssetEndpoints.props",
       "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssetEndpoints.props"
     },

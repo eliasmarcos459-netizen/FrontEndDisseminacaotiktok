@@ -18,7 +18,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FrontEndDisseminacaoRedesSociais")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0+d84a903ced35c25aa33b5b3e4ded0f2bf3f4ba62")]
 [assembly: System.Reflection.AssemblyProductAttribute("FrontEndDisseminacaoRedesSociais")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FrontEndDisseminacaoRedesSociais")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

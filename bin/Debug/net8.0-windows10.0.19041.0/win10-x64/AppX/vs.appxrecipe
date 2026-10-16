@@ -29,7 +29,7 @@
     <AppXManifest Include="C:\Users\User\Desktop\FrontEndDisseminacaoRedesSociais\FrontEndDisseminacaoRedesSociais\bin\Debug\net8.0-windows10.0.19041.0\win10-x64\AppxManifest.xml">
       <PackagePath>AppxManifest.xml</PackagePath>
       <ReRegisterAppIfChanged>true</ReRegisterAppIfChanged>
-      <Modified>2026-10-16T07:05:18.870</Modified>
+      <Modified>2026-10-16T12:25:49.371</Modified>
     </AppXManifest>
   </ItemGroup>
   <ItemGroup>
@@ -43,11 +43,11 @@
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\User\Desktop\FrontEndDisseminacaoRedesSociais\FrontEndDisseminacaoRedesSociais\bin\Debug\net8.0-windows10.0.19041.0\win10-x64\FrontEndDisseminacaoRedesSociais.dll">
       <PackagePath>FrontEndDisseminacaoRedesSociais.dll</PackagePath>
-      <Modified>2026-10-16T07:04:33.546</Modified>
+      <Modified>2026-10-16T12:25:48.485</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\User\Desktop\FrontEndDisseminacaoRedesSociais\FrontEndDisseminacaoRedesSociais\obj\Debug\net8.0-windows10.0.19041.0\win10-x64\apphost.exe">
       <PackagePath>FrontEndDisseminacaoRedesSociais.exe</PackagePath>
-      <Modified>2026-10-16T07:04:33.646</Modified>
+      <Modified>2026-10-16T12:25:48.564</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\User\Desktop\FrontEndDisseminacaoRedesSociais\FrontEndDisseminacaoRedesSociais\Resources\Raw\AboutAssets.txt">
       <PackagePath>AboutAssets.txt</PackagePath>
