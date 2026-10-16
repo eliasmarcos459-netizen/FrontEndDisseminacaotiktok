@@ -1,0 +1,582 @@
+﻿@page "/"
+@using SMAD
+@using MudBlazor
+@inject ISnackbar Snackbar
+@inject FacebookService FbService
+@inject InstagramService IgService
+@inject TwitterService TwitterService
+@inject TikTokService TikTokService
+
+<MudThemeProvider @bind-IsDarkMode="@SessaoThemeMudBlazor._IsDarkTheme" Theme="SessaoThemeMudBlazor._customTheme" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pt-6 pb-12 px-3 px-md-4">
+    <!-- Banner de Cabeçalho -->
+    <MudPaper Elevation="3" Class="pa-5 mb-5 rounded-xl text-white d-flex flex-column flex-md-row justify-space-between align-start align-md-center gap-4" Style="background: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-primary-darken) 100%);">
+        <div>
+            <div class="d-flex align-center gap-2 mb-1">
+                <MudIcon Icon="@Icons.Material.Filled.Campaign" Size="Size.Large" Style="color: #ffffff !important;" />
+                <MudText Typo="Typo.h5" Style="font-weight: 800; letter-spacing: -0.5px; color: #ffffff !important;">
+                    Central de Publicação
+                </MudText>
+            </div>
+            <MudText Typo="Typo.body2" Style="opacity: 0.95; color: #ffffff !important;">
+                Crie um conteúdo unificado e personalize a distribuição para as suas redes sociais em tempo real.
+            </MudText>
+        </div>
+        <MudChip T="string" Color="Color.Surface" Variant="Variant.Outlined" Size="Size.Medium" Class="px-4 py-2 border-solid border-2" Style="color: #ffffff !important; border-color: rgba(255, 255, 255, 0.7) !important;">
+            <MudIcon Icon="@Icons.Material.Filled.RssFeed" Class="mr-2" Size="Size.Small" Style="color: #ffffff !important;" />
+            <span style="color: #ffffff !important; font-weight: 700;">@_platforms.Count(p => p.EstaSelecionado) / @_platforms.Count Canais Ativos</span>
+        </MudChip>
+    </MudPaper>
+
+    <MudGrid Spacing="3">
+        <!-- Lado Esquerdo: Conteúdo Base e Mídia -->
+        <MudItem xs="12" lg="7">
+            <MudPaper Elevation="2" Class="pa-4 pa-md-5 rounded-xl h-100 d-flex flex-column justify-space-between">
+                <div>
+                    <div class="d-flex align-center gap-2 mb-3">
+                        <MudAvatar Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small">
+                            <MudIcon Icon="@Icons.Material.Filled.EditNote" Size="Size.Small" />
+                        </MudAvatar>
+                        <div>
+                            <MudText Typo="Typo.subtitle1" Style="font-weight: 700;">Conteúdo Principal</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">Replicado automaticamente respeitando o limite de cada canal</MudText>
+                        </div>
+                    </div>
+
+                    <MudTextField Value="_masterText"
+                                  ValueChanged="@((string val) => TextoPrincipal(val))"
+                                  Label="O que deseja compartilhar?"
+                                  Variant="Variant.Outlined"
+                                  Lines="4"
+                                  Immediate="true"
+                                  Class="mb-3" />
+
+                    <MudDivider Class="my-3" />
+
+                    <div class="d-flex flex-column gap-2">
+                        <div class="d-flex justify-space-between align-center">
+                            <MudText Typo="Typo.caption" Style="font-weight: 700;">Mídia e Anexos</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">@_uploadedFiles.Count ficheiro(s)</MudText>
+                        </div>
+
+                        <!-- Upload limpo sem chips nativos e sem erros de contexto -->
+                        <div class="w-100">
+                            <InputFile id="inputFicheirosUnico" OnChange="UploadFicheiros" multiple accept=".jpg, .jpeg, .png, .mp4, .mov, .avi" style="display:none;" />
+                            <MudButton HtmlTag="label"
+                                       Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       StartIcon="@Icons.Material.Filled.CloudUpload"
+                                       FullWidth="true"
+                                       Size="Size.Small"
+                                       Class="py-2 rounded-lg"
+                                       for="inputFicheirosUnico">
+                                Adicionar imagens ou vídeos
+                            </MudButton>
+                        </div>
+
+                        <!-- Mini Visualizador Único -->
+                        @if (_filePreviews.Any())
+                        {
+                            <MudGrid Spacing="2" Class="mt-2">
+                                @foreach (var item in _filePreviews)
+                                {
+                                    var currentItem = item;
+                                    <MudItem xs="6" sm="4" md="3">
+                                        <MudPaper Elevation="1" Class="rounded-lg position-relative border-solid border-1 mud-border-lines-default overflow-hidden" Style="background-color: #000; height: 110px; display: flex; align-items: center; justify-content: center;">
+
+                                            @if (currentItem.IsVideo)
+                                            {
+                                                <video src="@currentItem.DataUrl" controls style="width: 100%; height: 100%; object-fit: contain;" preload="metadata"></video>
+                                            }
+                                            else
+                                            {
+                                                <img src="@currentItem.DataUrl" alt="@currentItem.File.Name" style="width: 100%; height: 100%; object-fit: contain; cursor: pointer;" @onclick="() => AbrirMaximizado(currentItem)" />
+                                            }
+
+                                            <!-- Ações: Maximizar e Apagar -->
+                                            <div style="position: absolute; top: 4px; right: 4px; z-index: 10; display: flex; gap: 2px; background: rgba(0,0,0,0.6); border-radius: 4px; padding: 2px;">
+                                                <MudIconButton Icon="@Icons.Material.Filled.Fullscreen"
+                                                               Size="Size.Small"
+                                                               Style="color: white; padding: 2px;"
+                                                               OnClick="() => AbrirMaximizado(currentItem)"
+                                                               Title="Abrir por completo" />
+                                                <MudIconButton Icon="@Icons.Material.Filled.Close"
+                                                               Size="Size.Small"
+                                                               Style="color: white; padding: 2px;"
+                                                               OnClick="() => RemoverFicheiroPreview(currentItem)"
+                                                               Title="Remover" />
+                                            </div>
+                                        </MudPaper>
+                                    </MudItem>
+                                }
+                            </MudGrid>
+                        }
+                    </div>
+                </div>
+            </MudPaper>
+        </MudItem>
+
+        <!-- Lado Direito: Status de Prontidão -->
+        <MudItem xs="12" lg="5">
+            <MudPaper Elevation="2" Class="pa-4 pa-md-5 rounded-xl h-100 d-flex flex-column justify-space-between">
+                <div>
+                    <div class="d-flex align-center gap-2 mb-3">
+                        <MudAvatar Color="Color.Success" Variant="Variant.Filled" Size="Size.Small">
+                            <MudIcon Icon="@Icons.Material.Filled.CheckCircleOutline" Size="Size.Small" />
+                        </MudAvatar>
+                        <div>
+                            <MudText Typo="Typo.subtitle1" Style="font-weight: 700;">Status de Prontidão</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">Monitorização de limites</MudText>
+                        </div>
+                    </div>
+
+                    <MudStack Spacing="2">
+                        @foreach (var platform in _platforms)
+                        {
+                            <div class="d-flex justify-space-between align-center px-3 py-2 rounded-lg border-solid border-1 mud-border-lines-default bg-surface">
+                                <div class="d-flex align-center gap-2">
+                                    <span style="color: @(platform.EstaSelecionado? platform.CorHexadecimal: "gray") !important; display: inline-flex; align-items: center;">
+                                        <MudIcon Icon="@platform.Icone" Size="Size.Small" />
+                                    </span>
+                                    <div>
+                                        <MudText Typo="Typo.body2" Style="font-weight: 700; font-size: 0.85rem;">@platform.Nome</MudText>
+                                        @if (platform.EstaSelecionado)
+                                        {
+                                            <MudText Typo="Typo.caption" Color="@(platform.TextoAtual.Length >= platform.MaximoCaracteres ? Color.Warning : Color.Success)" Style="font-weight: 600; font-size: 0.7rem;">
+                                                @platform.TextoAtual.Length / @platform.MaximoCaracteres carateres
+                                            </MudText>
+                                        }
+                                        else
+                                        {
+                                            <MudText Typo="Typo.caption" Color="Color.Default" Style="font-size: 0.7rem;">Inativa</MudText>
+                                        }
+                                    </div>
+                                </div>
+                                <MudSwitch Value="platform.EstaSelecionado"
+                                           ValueChanged="@((bool val) => platform.EstaSelecionado = val)"
+                                           Color="Color.Success"
+                                           Dense="true" />
+                            </div>
+                        }
+                    </MudStack>
+                </div>
+
+                <div class="mt-3">
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               Size="Size.Medium"
+                               FullWidth="true"
+                               Class="py-2 rounded-lg"
+                               Disabled="(!PodePublicar() || estaPublicando)"
+                               OnClick="PublicarTudo">
+                        @if (estaPublicando)
+                        {
+                            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                            <span class="ms-2">A publicar...</span>
+                        }
+                        else
+                        {
+                            <span>Publicar em Redes Selecionadas</span>
+                        }
+                    </MudButton>
+                </div>
+            </MudPaper>
+        </MudItem>
+
+        <!-- Seção Inferior: Personalização Individual -->
+        <MudItem xs="12" Class="mt-2">
+            <div class="mb-3">
+                <MudText Typo="Typo.h6" Style="font-weight: 800;">Personalização Individual</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                    Cada rede transcreve o texto até ao seu limite exato e interrompe de forma isolada.
+                </MudText>
+            </div>
+
+            <MudGrid Spacing="3">
+                @foreach (var platform in _platforms)
+                {
+                    <MudItem xs="12" md="6" xl="3">
+                        <MudCard Elevation="2" Class="@($"rounded-xl h-100 d-flex flex-column justify-space-between {(platform.EstaSelecionado ? "border-primary" : "opacity-60")}")" Style="border-width: 2px !important;">
+                            <div>
+                                <MudCardHeader Class="py-2 px-3">
+                                    <CardHeaderAvatar>
+                                        <span style="color: @(platform.EstaSelecionado? platform.CorHexadecimal: "gray") !important; display: inline-flex; align-items: center;">
+                                            <MudIcon Icon="@platform.Icone" Size="Size.Medium" />
+                                        </span>
+                                    </CardHeaderAvatar>
+                                    <CardHeaderContent>
+                                        <MudText Typo="Typo.body2" Style="font-weight: 700;">@platform.Nome</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Máx: @platform.MaximoCaracteres</MudText>
+                                    </CardHeaderContent>
+                                    <CardHeaderActions>
+                                        <MudCheckBox Value="platform.EstaSelecionado"
+                                                     ValueChanged="@((bool val) => platform.EstaSelecionado = val)"
+                                                     Color="Color.Primary"
+                                                     Dense="true" />
+                                    </CardHeaderActions>
+                                </MudCardHeader>
+
+                                <MudCardContent Class="py-2 px-3">
+                                    <MudAlert Severity="Severity.Info" Dense="true" Class="mb-2 rounded-lg py-1" NoIcon="true">
+                                        <MudText Typo="Typo.caption" Style="font-size: 0.7rem;">
+                                            <b>Regras:</b> Máx @platform.MaximoImagens mídias. @platform.EspecificacoesMidia
+                                        </MudText>
+                                    </MudAlert>
+
+                                    <MudTextField Value="@platform.TextoAtual"
+                                                  ValueChanged="@((string val) => AoAlterarTextoPlataforma(platform, val))"
+                                                  Label="Texto ajustado"
+                                                  Variant="Variant.Outlined"
+                                                  Lines="3"
+                                                  Disabled="!platform.EstaSelecionado"
+                                                  Immediate="true"
+                                                  MaxLength="@platform.MaximoCaracteres"
+                                                  Class="mb-1 dense-input" />
+
+                                    <div class="d-flex justify-space-between align-center px-1">
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-size: 0.7rem;">
+                                            @(platform.MaximoCaracteres - platform.TextoAtual.Length == 0 ? "Limite Atingido" : "Disponível")
+                                        </MudText>
+                                        <MudText Typo="Typo.caption" Color="@(platform.MaximoCaracteres - platform.TextoAtual.Length == 0 ? Color.Warning : Color.Secondary)" Style="font-weight: 700; font-size: 0.7rem;">
+                                            @(platform.MaximoCaracteres - platform.TextoAtual.Length) restantes
+                                        </MudText>
+                                    </div>
+                                </MudCardContent>
+                            </div>
+                        </MudCard>
+                    </MudItem>
+                }
+            </MudGrid>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+<!-- Modal de Inspeção Completa -->
+<MudDialog @bind-IsVisible="_isViewerOpen" Options="new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true, Position = DialogPosition.Center }">
+    <TitleContent>
+        <MudText Typo="Typo.subtitle1" Style="font-weight: 700;">@_selectedPreview?.File.Name</MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (_selectedPreview != null)
+        {
+            <div class="d-flex flex-column align-center justify-center" style="background-color: #000; border-radius: 8px; overflow: hidden; padding: 6px; min-height: 300px; max-height: 70vh;">
+                @if (_selectedPreview.IsVideo)
+                {
+                    <video src="@_selectedPreview.DataUrl" controls autoplay style="max-width: 100%; max-height: 65vh; object-fit: contain;"></video>
+                }
+                else
+                {
+                    <img src="@_selectedPreview.DataUrl" alt="@_selectedPreview.File.Name" style="max-width: 100%; max-height: 65vh; object-fit: contain;" />
+                }
+            </div>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="() => _isViewerOpen = false">Fechar</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private string _masterText = string.Empty;
+    private List<IBrowserFile> _uploadedFiles = new();
+    private List<FilePreviewModel> _filePreviews = new();
+    private bool estaPublicando = false;
+
+    private bool _isViewerOpen = false;
+    private FilePreviewModel? _selectedPreview;
+
+    private List<ModeloRedesSociais> _platforms = new()
+    {
+        new ModeloRedesSociais
+        {
+            Nome = "Facebook",
+            Icone = Icons.Custom.Brands.Facebook,
+            CorHexadecimal = "#1877F2",
+            MaximoCaracteres = 63206,
+            MaximoImagens = 10,
+            EspecificacoesMidia = "Ideal para links.",
+            EstaSelecionado = false
+        },
+        new ModeloRedesSociais
+        {
+            Nome = "TikTok",
+            Icone = Icons.Custom.Brands.TikTok,
+            CorHexadecimal = "#000000",
+            MaximoCaracteres = 4000,
+            MaximoImagens = 1,
+            EspecificacoesMidia = "Legendas e hashtags virais.",
+            EstaSelecionado = false
+        },
+        new ModeloRedesSociais
+        {
+            Nome = "Instagram",
+            Icone = Icons.Custom.Brands.Instagram,
+            CorHexadecimal = "#E1306C",
+            MaximoCaracteres = 2200,
+            MaximoImagens = 10,
+            EspecificacoesMidia = "Mídia visual obrigatória.",
+            EstaSelecionado = false
+        },
+        new ModeloRedesSociais
+        {
+            Nome = "X (Twitter)",
+            Icone = Icons.Custom.Brands.Twitter,
+            CorHexadecimal = "#1DA1F2",
+            MaximoCaracteres = 280,
+            MaximoImagens = 4,
+            EspecificacoesMidia = "Imagens/Vídeos curtos.",
+            EstaSelecionado = false
+        },
+        new ModeloRedesSociais
+        {
+            Nome = "YouTube",
+            Icone = Icons.Custom.Brands.YouTube,
+            CorHexadecimal = "#FF0000",
+            MaximoCaracteres = 5000,
+            MaximoImagens = 1,
+            EspecificacoesMidia = "Focado em descrições de vídeos.",
+            EstaSelecionado = false
+        }
+    };
+
+    private void TextoPrincipal(string newValue)
+    {
+        _masterText = newValue ?? string.Empty;
+
+        foreach (var platform in _platforms)
+        {
+            if (_masterText.Length > platform.MaximoCaracteres)
+            {
+                platform.TextoAtual = _masterText.Substring(0, platform.MaximoCaracteres);
+            }
+            else
+            {
+                platform.TextoAtual = _masterText;
+            }
+        }
+    }
+
+    private void AoAlterarTextoPlataforma(ModeloRedesSociais platform, string newValue)
+    {
+        var val = newValue ?? string.Empty;
+
+        if (val.Length > platform.MaximoCaracteres)
+        {
+            platform.TextoAtual = val.Substring(0, platform.MaximoCaracteres);
+        }
+        else
+        {
+            platform.TextoAtual = val;
+        }
+    }
+
+    private async Task UploadFicheiros(InputFileChangeEventArgs e)
+    {
+        foreach (var file in e.GetMultipleFiles())
+        {
+            if (_uploadedFiles.Any(f => f.Name == file.Name)) continue;
+
+            _uploadedFiles.Add(file);
+
+            bool isVideo = file.ContentType.Contains("video") || file.Name.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase) || file.Name.EndsWith(".mov", StringComparison.OrdinalIgnoreCase);
+            string dataUrl = string.Empty;
+
+            try
+            {
+                if (isVideo)
+                {
+                    var buffer = new byte[file.Size];
+                    await file.OpenReadStream(maxAllowedSize: 100 * 1024 * 1024).ReadAsync(buffer);
+                    dataUrl = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}";
+                }
+                else
+                {
+                    var resizedFile = await file.RequestImageFileAsync(file.ContentType, 1200, 1200);
+                    var buffer = new byte[resizedFile.Size];
+                    await resizedFile.OpenReadStream(maxAllowedSize: 20 * 1024 * 1024).ReadAsync(buffer);
+                    dataUrl = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}";
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Erro ao carregar pré-visualização: {ex.Message}", Severity.Warning);
+            }
+
+            _filePreviews.Add(new FilePreviewModel
+            {
+                File = file,
+                DataUrl = dataUrl,
+                IsVideo = isVideo
+            });
+        }
+    }
+
+    private void RemoverFicheiroPreview(FilePreviewModel previewModel)
+    {
+        _filePreviews.Remove(previewModel);
+        _uploadedFiles.Remove(previewModel.File);
+    }
+
+    private void AbrirMaximizado(FilePreviewModel model)
+    {
+        _selectedPreview = model;
+        _isViewerOpen = true;
+    }
+
+    private bool PodePublicar()
+    {
+        var selected = _platforms.Where(p => p.EstaSelecionado).ToList();
+        return selected.Any();
+    }
+
+    private async Task PublicarTudo()
+    {
+        estaPublicando = true;
+        StateHasChanged();
+
+        try
+        {
+            // PROCESSAR FACEBOOK
+            var plataformaFacebook = _platforms.FirstOrDefault(p => p.Nome == "Facebook" && p.EstaSelecionado);
+            if (plataformaFacebook != null)
+            {
+                if (string.IsNullOrWhiteSpace(plataformaFacebook.TextoAtual))
+                {
+                    Snackbar.Add("O texto para o Facebook não pode estar vazio.", Severity.Warning);
+                    return;
+                }
+
+                bool sucessoFb = false;
+                if (_uploadedFiles != null && _uploadedFiles.Any())
+                {
+                    sucessoFb = await FbService.PublicarNaPaginaComMidiaAsync(plataformaFacebook.TextoAtual, _uploadedFiles);
+                }
+                else
+                {
+                    sucessoFb = await FbService.PublicarNaPaginaAsync(plataformaFacebook.TextoAtual);
+                }
+
+                if (sucessoFb)
+                {
+                    Snackbar.Add("Publicado com sucesso na Página do Facebook! 🎉", Severity.Success);
+                }
+                else
+                {
+                    Snackbar.Add("Falha ao publicar no Facebook. Verifique o token ou a consola.", Severity.Error);
+                }
+            }
+
+            // PROCESSAR TIKTOK
+            var plataformaTikTok = _platforms.FirstOrDefault(p => p.Nome == "TikTok" && p.EstaSelecionado);
+            if (plataformaTikTok != null)
+            {
+                if (string.IsNullOrWhiteSpace(plataformaTikTok.TextoAtual))
+                {
+                    Snackbar.Add("O texto para o TikTok não pode estar vazio.", Severity.Warning);
+                    return;
+                }
+
+                var videoFile = _uploadedFiles.FirstOrDefault(f => f.ContentType.Contains("video") || f.Name.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase) || f.Name.EndsWith(".mov", StringComparison.OrdinalIgnoreCase));
+                if (videoFile == null)
+                {
+                    Snackbar.Add("O TikTok exige a seleção de um ficheiro de vídeo (.mp4 ou .mov).", Severity.Warning);
+                }
+                else
+                {
+                    bool sucessoTikTok = await TikTokService.PublicarVideoAsync(plataformaTikTok.TextoAtual, videoFile);
+                    if (sucessoTikTok)
+                    {
+                        Snackbar.Add("Vídeo enviado com sucesso para o TikTok (Inbox/Draft)! 🎵", Severity.Success);
+                    }
+                    else
+                    {
+                        Snackbar.Add("Falha ao publicar no TikTok. Verifique o token de acesso ou os logs.", Severity.Error);
+                    }
+                }
+            }
+
+            // PROCESSAR INSTAGRAM
+            var plataformaInstagram = _platforms.FirstOrDefault(p => p.Nome == "Instagram" && p.EstaSelecionado);
+            if (plataformaInstagram != null)
+            {
+                if (string.IsNullOrWhiteSpace(plataformaInstagram.TextoAtual))
+                {
+                    Snackbar.Add("O texto para o Instagram não pode estar vazio.", Severity.Warning);
+                    return;
+                }
+
+                string publicImageUrl = "https://picsum.photos/1080/1080.jpg";
+                bool sucessoIg = await IgService.PublicarFotoAsync(publicImageUrl, plataformaInstagram.TextoAtual);
+
+                if (sucessoIg)
+                {
+                    Snackbar.Add("Publicado com sucesso no Instagram! 📸", Severity.Success);
+                }
+                else
+                {
+                    Snackbar.Add("Falha ao publicar no Instagram. Verifique se a imagem possui URL pública.", Severity.Error);
+                }
+            }
+
+            // PROCESSAR X (TWITTER)
+            var plataformaTwitter = _platforms.FirstOrDefault(p => (p.Nome.Contains("X", StringComparison.OrdinalIgnoreCase) || p.Nome.Contains("Twitter", StringComparison.OrdinalIgnoreCase)) && p.EstaSelecionado);
+            if (plataformaTwitter != null)
+            {
+                if (string.IsNullOrWhiteSpace(plataformaTwitter.TextoAtual))
+                {
+                    Snackbar.Add("O texto para o X não pode estar vazio.", Severity.Warning);
+                    return;
+                }
+
+                bool sucessoTwitter = await TwitterService.PublicarTweetAsync(plataformaTwitter.TextoAtual);
+                if (sucessoTwitter)
+                {
+                    Snackbar.Add("Publicado com sucesso no X! 🐦", Severity.Success);
+                }
+                else
+                {
+                    Snackbar.Add("Falha ao publicar no X. Verifique as credenciais ou a consola.", Severity.Error);
+                }
+            }
+
+            // Limpeza geral após o ciclo de publicação
+            _masterText = string.Empty;
+            TextoPrincipal(string.Empty);
+            _uploadedFiles.Clear();
+            _filePreviews.Clear();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Ocorreu um erro inesperado: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            estaPublicando = false;
+            StateHasChanged();
+        }
+    }
+
+    public class FilePreviewModel
+    {
+        public IBrowserFile File { get; set; } = default!;
+        public string DataUrl { get; set; } = string.Empty;
+        public bool IsVideo { get; set; }
+    }
+
+    public class ModeloRedesSociais
+    {
+        public string Nome { get; set; } = string.Empty;
+        public string Icone { get; set; } = string.Empty;
+        public string CorHexadecimal { get; set; } = "#666666";
+        public int MaximoCaracteres { get; set; }
+        public int MaximoImagens { get; set; }
+        public string EspecificacoesMidia { get; set; } = string.Empty;
+        public bool EstaSelecionado { get; set; }
+        public string TextoAtual { get; set; } = string.Empty;
+        public bool EhTextoValido => TextoAtual.Length <= MaximoCaracteres;
+    }
+}
